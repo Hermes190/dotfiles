@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ifconfig | grep enp9s0 -A3 | head -n2 | tail -n1 | grep "inet" | awk '{print "Tu IP privada --> " $2}'
+
+ifconfig | grep enp9s0 -A3 | head -n2 | tail -n1 | grep "netmask" | awk '{print "Máscara de red ---> " $4}'
+
+ifconfig | grep enp9s0 -A3 | tail -n1 | awk '{print "Tu dirección MAC (OUI/NIC) ---> " $2}'
+
+
+ifconfig | grep enp9s0 -A3 | tail -n3 | head -n1 | grep "broadcast" | awk '{print "Dirección broadcast ---> "$NF}'
