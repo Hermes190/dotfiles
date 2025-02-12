@@ -130,14 +130,7 @@ searchIP() {
     if [ "$machineName" ]; then
         echo -e "[Información de la máquina]:\n\n$machineName"
         
- #       read -p "¿Quieres más información? (Y/N) " respuesta
-        
-#       if [ "$respuesta" = "Y" ] || [ "$respuesta" = "y" ]; then
- #           echo "ok"
-  #      else
-   #         echo "me vale verga"
-    #    fi
-    else
+     else
         echo "No se encontró la máquina."
     fi
 
@@ -230,6 +223,7 @@ local os="$2"
 
 
 
+
 mix_check=$(cat bundle.js | grep "so: \"$os\"" -C5 | grep "$difficulty" -B5 | grep "name:" | awk '{print $NF}' | tr -d ',' | tr -d '"')
 
 
@@ -275,6 +269,29 @@ fi
 }
 
 
+# Buscar por OS + skill para aprender
+
+os_skills(){
+
+local skill="$1"
+local os="$2"
+
+os_skill_checker=$(cat bundle.js | grep "so: \"${os}"\" -B4 -A2 | grep -i "${skill}" -B6 | grep "name:" | awk '{print $NF}'| tr -d ',' | tr -d '"')
+
+if [ "${os_skill_checker}" ]; then
+
+echo -e "[*] Mostrando máquinas con el sistema operativo ${os} & con skills de ${skill}:
+
+${os_skill_checker}"
+
+else 
+	echo "Sistema Operativo y/o skill no válida."
+
+fi
+
+}
+
+
 # Indicadores especiales mixtos
 
 declare -i chiva=0
@@ -303,7 +320,7 @@ d) skill="$OPTARG"; ((parameter_counter+=4)) ; ((chiva+=1))
 o) os="$OPTARG" ; ((parameter_counter+=6)) ; ((chiva+=1))
 ;;
 
-s) skill="$OPTARG" ; ((parameter_counter+=7))
+s) skill="$OPTARG" ; ((parameter_counter+=7)) ; ((chiva+=2))
 
 esac
 
@@ -338,6 +355,10 @@ searchOS $os
 elif [ $chiva -eq 2 ]; then
 
 mixed $skill $os
+
+elif [ $chiva -eq 3 ]; then
+
+os_skills $skill $os
 
 else
  helpPanel
