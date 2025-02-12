@@ -59,6 +59,8 @@ fi
 
     backup_bet=$initial_bet
     lost_counter=0
+    win_counter=0
+    max_money=0
     declare -i play_counter=1
     declare -a numeros_perjudicados=()
     tput civis # quitar
@@ -80,42 +82,58 @@ if [ $initial_bet -gt $dinero ]; then
 
         if [ "$par_impar" == "par" ]; then
             if [ $random_number -eq 0 ]; then
-		((lost_counter++))
-		numeros_perjudicados+=($random_number)		
+		     ((lost_counter++))
+		     numeros_perjudicados+=($random_number)		
 
-		echo "${red}El número es 0, has perdido.${end}"
+		     echo "${red}El número es 0, has perdido.${end}"
 
                 echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€\n${end}"
                 initial_bet=$(($initial_bet*2))
 
             elif [ $((${random_number} % 2)) -eq 0 ]; then
                unset numeros_perjudicados[@]
-		    echo -e "${green}¡El número es par, has ganado!${end}"
-        
-	       # Devolvemos la apuesta inicial + las ganancias
+		     echo -e "${green}¡El número es par, has ganado!${end}"
+             ((win_counter++))
+	         # Devolvemos la apuesta inicial + las ganancias
                 dinero=$(($dinero + $initial_bet * 2))
+               if [ $dinero -gt $max_money ]; then
+                    max_money=$dinero
+                fi
+               
+               
+               
                 echo -e "${gray}Tu nuevo balance es:${end} ${green}${dinero}€\n${end}"
                 initial_bet=$backup_bet
             else
                 echo -e "${red}El número es impar, ¡has perdido!${end}"
                 echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€\n${end}"
-		((lost_counter++))
-		numeros_perjudicados+=($random_number)
-		initial_bet=$(($initial_bet*2))
+		       ((lost_counter++))
+		       numeros_perjudicados+=($random_number)
+		       initial_bet=$(($initial_bet*2))
             fi
+        
+        
         elif [ "$par_impar" == "impar" ]; then
             if [ $random_number -eq 0 ]; then
-                echo "${red}El número es 0, has perdido.${end}"
-		((lost_counter++))
-		numeros_perjudicados+=($random_number)
-		echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€${end}"
+                echo -e "${red}El número es 0, has perdido.${end}"
+		       ((lost_counter++))
+		       numeros_perjudicados+=($random_number)
+		       echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€${end}"
                 initial_bet=$(($initial_bet*2))
+               
             elif [ $((${random_number} % 2)) -eq 1 ]; then
-		    unset numeros_perjudicados[@]
+		        
+                unset numeros_perjudicados[@]
                 echo -e "${green}¡El número es impar, has ganado!${end}"
                 # Devolvemos la apuesta inicial + las ganancias
+                ((win_counter++))
                 dinero=$(($dinero + $initial_bet * 2))
-		unset numeros_perjudicados
+		         if [ $dinero -gt $max_money ]; then 
+                 max_money=$dinero
+                fi             
+
+
+             unset numeros_perjudicados
                 echo -e "${gray}Tu nuevo balance es:${end} ${green}${dinero}€\n${end}"
                 initial_bet=$backup_bet
             else
@@ -132,7 +150,13 @@ if [ $initial_bet -gt $dinero ]; then
     done
   
     numeros=$(printf "%s" "${numeros_perjudicados[@]/#/, }" | sed 's/^[, ]*//')
-   echo -e "Has jugado un total de ${play_counter} veces y has sido perjudicado ${lost_counter} veces por los números: ${numeros}."
+   
+   echo -e "
+   - Has jugado un total de ${play_counter} veces.
+   - Has perdido un total de ${lost_counter} veces.
+   - Has ganado un total de ${win_counter} veces. 
+   - Tu saldo máximo ha sido de ${max_money}€.
+   - Has perdido seguido por los números: ${numeros}."
     tput cnorm # recuperar
 }
 # Indicadores (opcional)
