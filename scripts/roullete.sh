@@ -61,6 +61,8 @@ fi
     lost_counter=0
     win_counter=0
     max_money=0
+    declare -i draw_0_count=0
+
     declare -i play_counter=1
     declare -a numeros_perjudicados=()
     tput civis # quitar
@@ -83,15 +85,15 @@ if [ $initial_bet -gt $dinero ]; then
         if [ "$par_impar" == "par" ]; then
             if [ $random_number -eq 0 ]; then
 		     ((lost_counter++))
+		     ((draw_0_count++))
 		     numeros_perjudicados+=($random_number)		
 
 		     echo "${red}El número es 0, has perdido.${end}"
-
-                echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€\n${end}"
-                initial_bet=$(($initial_bet*2))
+                     echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€\n${end}"
+                     initial_bet=$(($initial_bet*2))
 
             elif [ $((${random_number} % 2)) -eq 0 ]; then
-               unset numeros_perjudicados[@]
+                     unset numeros_perjudicados[@]
 		     echo -e "${green}¡El número es par, has ganado!${end}"
              ((win_counter++))
 	         # Devolvemos la apuesta inicial + las ganancias
@@ -115,15 +117,17 @@ if [ $initial_bet -gt $dinero ]; then
         
         elif [ "$par_impar" == "impar" ]; then
             if [ $random_number -eq 0 ]; then
-                echo -e "${red}El número es 0, has perdido.${end}"
+		    ((draw_0_count++))
+		    echo -e "${red}El número es 0, has perdido.${end}"
 		       ((lost_counter++))
+		       ((draw_0_count++))
 		       numeros_perjudicados+=($random_number)
 		       echo -e "${gray}Tu balance actual es:${end} ${green}${dinero}€${end}"
                 initial_bet=$(($initial_bet*2))
                
             elif [ $((${random_number} % 2)) -eq 1 ]; then
 		        
-                unset numeros_perjudicados[@]
+                unset numeros_perjudicados
                 echo -e "${green}¡El número es impar, has ganado!${end}"
                 # Devolvemos la apuesta inicial + las ganancias
                 ((win_counter++))
@@ -156,9 +160,24 @@ if [ $initial_bet -gt $dinero ]; then
    - Has perdido un total de ${lost_counter} veces.
    - Has ganado un total de ${win_counter} veces. 
    - Tu saldo máximo ha sido de ${max_money}€.
-   - Has perdido seguido por los números: ${numeros}."
+   - Has perdido seguido por los números: ${numeros}.
+   - Ha salido el número 0 un total de ${draw_0_count} veces."
     tput cnorm # recuperar
 }
+
+function inverse() {
+  read -p "¿Cuánto dinero quieres apostar? -->" initial_bet
+  read -p "¿Qué deseas apostar continuamente (Par/Impar)? -->" par_impar
+
+  declare -a inverse_logic=(1, 2, 3, 4)
+  
+  
+
+
+}
+
+
+
 # Indicadores (opcional)
 declare -i counter=0
 
@@ -173,10 +192,15 @@ done
 if [ $dinero ] && [ $technique ]; then
     if [ "$technique" == "martingala" ]; then
         martingala
+   elif [ "$technique" == "inverse" ]; then
+	inverse
     else
-        echo -e "${red}⚠️  Técnica introducida inexistente.${end}\n\n"
-        help_Panel
+	echo -e "${red}⚠️  Técnica introducida inexistente.${end}\n\n"
+	help_Panel
+
     fi
+
+
 else
     help_Panel
     exit
