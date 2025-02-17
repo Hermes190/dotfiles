@@ -186,81 +186,100 @@ echo -e "${gray}Introduzca la secuencia de números a apostar (separados por esp
   	bet=$((logica[0] + logica[-1]))
     	logica=(${logica[@]})
 
-	
+max_money() {
+    if [ $dinero -gt $max_money ]; then
+        max_money=$dinero
+    fi
+}
+
+
+
+
 	sleep 4
 
+
 tput civis
+
+declare -i jugadas_realizadas=0
+max_money=0
 while true; do
-random_number=$(($RANDOM % 37))
+	((jugadas_realizadas++))
+    random_number=$(($RANDOM % 37))
+
+    if [ ${#logica[@]} -eq 0 ] || [ ${#logica[@]} -eq 1 ]; then
+        logica=(${backup_logica[@]})
+        echo "Se ha reiniciado la secuencia. Vale lo mismo que la inicial."
+        bet=$((logica[0] + logica[${#logica[@]}-1])) # Recalcular bet después de reiniciar la secuencia
+    fi
+
+    if [ $dinero -lt $bet ]; then
+        echo -e "Te has quedado sin dinero para seguir jugando."
+        tput cnorm
+        break
+    fi
 dinero=$(($dinero - $bet))
 
-if [ ${#logica[@]} -eq 0 ] || [ ${#logica[@]} -eq 1 ]; then
-    logica=(${backup_logica[@]})
-    echo "Se ha reiniciado la secuencia. Vale lo mismo que la inicial."
-fi
+echo -e "Se apuesta ${bet}€ con la secuencia [${logica[@]}] y tu dinero queda en ${dinero}."
 
-if [ $dinero -lt 0 ]; then
-    echo -e "Te has quedado sin dinero para seguir jugando."
-    tput cnorm
-    break
-fi
+    echo -e "El número que ha salido es ${random_number}"
 
-echo -e "Se apuesta ${bet} y la secuencia inicial es [${logica[@]}]. Tu dinero actual es ${dinero}€."
-echo -e "El número que ha salido es ${random_number}"
-
-if [ $par_impar == "par" ]; then
-    if [ $random_number -eq 0 ]; then
-        echo "El número es 0, has perdido."
-        unset logica[0]
-        unset logica[${#logica[@]}-1]
-        logica=(${logica[@]})
-        echo "Tu dinero actual es ${dinero}€."
-    elif [ $(($random_number % 2)) -eq 0 ]; then
-        echo -e "El número es par, has ganado."
-        reward=$(($bet * 2))
-        dinero=$(($dinero + $reward))
-        logica+=($bet)
-        logica=(${logica[@]})
-        echo "Tu recompensa es de ${reward}€ y el dinero es ${dinero}€."
-    else
-        echo "El número es impar, has perdido."
-        unset logica[0]
-        unset logica[${#logica[@]}-1]
-        logica=(${logica[@]})
-        echo "La secuencia queda de esta forma: ${logica[@]}"
+    if [ $par_impar == "par" ]; then
+        if [ $random_number -eq 0 ]; then
+            echo "El número es 0, has perdido."
+            unset logica[0]
+            unset logica[-1] 
+            logica=(${logica[@]})
+            echo -e "Tu dinero actual es ${dinero}€.\n"
+        elif [ $(($random_number % 2)) -eq 0 ]; then
+            echo -e "El número es par, has ganado."
+            reward=$(($bet * 2))
+            dinero=$(($dinero + $reward))
+            logica+=($bet)
+            logica=(${logica[@]})
+            echo -e "Tu recompensa es de ${reward}€ y el dinero es ${dinero}€.\n"
+        else
+            unset logica[0]
+            unset logica[-1]  
+            logica=(${logica[@]})
+            echo -e "El número es impar y pierdes. La secuencia queda de esta forma: ${logica[@]}\n"
+        fi
+    elif [ $par_impar == "impar" ]; then
+        if [ $random_number -eq 0 ]; then
+            echo "El número es 0, has perdido."
+            unset logica[0]
+            unset logica[-1] 
+            logica=(${logica[@]})
+            echo -e "Tu dinero actual es ${dinero}€.\n"
+        elif [ $(($random_number % 2)) -eq 1 ]; then
+            echo -e "El número es impar, has ganado."
+            reward=$(($bet * 2))
+            dinero=$(($dinero + $reward))
+            logica+=($bet)
+            logica=(${logica[@]})
+            echo -e "Tu recompensa es de ${reward}€ y el dinero es ${dinero}€.\n"
+        else
+            unset logica[0]
+            unset logica[-1]
+            logica=(${logica[@]})
+            echo -e "El número es impar y pierdes. La secuencia queda de esta forma: ${logica[@]}\n"
+        fi
     fi
-elif [ $par_impar == "impar" ]; then
-    if [ $random_number -eq 0 ]; then
-        echo "El número es 0, has perdido."
-        unset logica[0]
-        unset logica[${#logica[@]}-1]
-        logica=(${logica[@]})
-        echo "Tu dinero actual es ${dinero}€."
-    elif [ $(($random_number % 2)) -eq 1 ]; then
-        echo -e "El número es impar, has ganado."
-        reward=$(($bet * 2))
-        dinero=$(($dinero + $reward))
-        logica+=($bet)
-        logica=(${logica[@]})
-        echo "Tu recompensa es de ${reward}€ y el dinero es ${dinero}€."
-    else
-        echo "El número es par, has perdido."
-        unset logica[0]
-        unset logica[${#logica[@]}-1]
-        logica=(${logica[@]})
-        echo "La secuencia queda de esta forma: ${logica[@]}"
-    fi
-fi
 
-if [ ${#logica[@]} -gt 1 ]; then
-    bet=$((logica[0] + logica[${#logica[@]}-1]))
-elif [ ${#logica[@]} -eq 1 ]; then
-    bet=${logica[0]}
-else
-    logica=(${backup_logica[@]})
-    bet=$((logica[0] + logica[${#logica[@]}-1]))
-fi
+    if [ ${#logica[@]} -gt 1 ]; then
+        bet=$((logica[0] + logica[${#logica[@]}-1]))
+    elif [ ${#logica[@]} -eq 1 ]; then
+        bet=${logica[0]}
+    else
+        logica=(${backup_logica[@]})
+        bet=$((logica[0] + logica[${#logica[@]}-1]))
+    fi
+
+    max_money
 done
+
+echo -e "\n${yellow}Tu saldo final es de ${end}${green}${dinero}€.${end}"
+echo -e "${yellow}Has jugado un total de${end} ${purple}${jugadas_realizadas}${end}${yellow} veces.${end}"
+echo -e "${yellow}Máximo saldo alcanzado:${end} ${green}${max_money}€.${end}"
 tput cnorm
 }
 
