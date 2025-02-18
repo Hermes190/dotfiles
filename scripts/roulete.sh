@@ -195,28 +195,48 @@ max_money() {
 
 
 
-	sleep 4
 
 
 tput civis
 
 declare -i jugadas_realizadas=0
 max_money=0
+bet_renew=$(($dinero+50)) # Dinero el cual una vez alcanzado, se reinicia la secuencia a la original
+
+
+sleep 5
+
+
 while true; do
+	
 	((jugadas_realizadas++))
     random_number=$(($RANDOM % 37))
 
+    # Reiniciar la secuencia si se ha alcanzado el límite
     if [ ${#logica[@]} -eq 0 ] || [ ${#logica[@]} -eq 1 ]; then
         logica=(${backup_logica[@]})
         echo "Se ha reiniciado la secuencia. Vale lo mismo que la inicial."
         bet=$((logica[0] + logica[${#logica[@]}-1])) # Recalcular bet después de reiniciar la secuencia
     fi
 
+    	# Dinero insuficiente
     if [ $dinero -lt $bet ]; then
         echo -e "Te has quedado sin dinero para seguir jugando."
         tput cnorm
         break
+    fi 
+
+	if [ $dinero -gt $bet_renew ]; then
+	logica=(${backup_logica[@]})
+	logica=(${logica[@]})
+	bet=$((logica[0] + logica[-1]))
+    bet_renew=$(($dinero+50))
+	echo -e "${yellow}Se ha reiniciado la secuencia a la original para jugar con el dinero de la casa.${end}"
     fi
+
+    echo -e "Tu dinero actual es ${dinero}€ y la secuencia es [${logica[@]}]."
+
+
 dinero=$(($dinero - $bet))
 
 echo -e "Se apuesta ${bet}€ con la secuencia [${logica[@]}] y tu dinero queda en ${dinero}."
@@ -265,12 +285,12 @@ echo -e "Se apuesta ${bet}€ con la secuencia [${logica[@]}] y tu dinero queda 
         fi
     fi
 
-    if [ ${#logica[@]} -gt 1 ]; then
+    if [ ${#logica[@]} -gt 1 ]; then # Si la secuencia es mayor a 1, se recalcula el bet
         bet=$((logica[0] + logica[${#logica[@]}-1]))
-    elif [ ${#logica[@]} -eq 1 ]; then
+    elif [ ${#logica[@]} -eq 1 ]; then # Si vale 1, bet es el único valor
         bet=${logica[0]}
     else
-        logica=(${backup_logica[@]})
+        logica=(${backup_logica[@]}) # Si es 0, se reinicia la secuencia
         bet=$((logica[0] + logica[${#logica[@]}-1]))
     fi
 
