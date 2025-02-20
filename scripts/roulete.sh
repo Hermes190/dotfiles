@@ -215,7 +215,7 @@ while true; do
     # Reiniciar la secuencia si se ha alcanzado el límite
     if [ ${#logica[@]} -eq 0 ] || [ ${#logica[@]} -eq 1 ]; then
         logica=(${backup_logica[@]})
-        echo "Se ha reiniciado la secuencia. Vale lo mismo que la inicial."
+        echo -e "Se ha reiniciado la secuencia. Vale lo mismo que la inicial."
         bet=$((logica[0] + logica[${#logica[@]}-1])) # Recalcular bet después de reiniciar la secuencia
     fi
 
@@ -231,8 +231,19 @@ while true; do
 	logica=(${logica[@]})
 	bet=$((logica[0] + logica[-1]))
     bet_renew=$(($dinero+50))
-	echo -e "${yellow}Se ha reiniciado la secuencia a la original para jugar con el dinero de la casa.${end}"
-    fi
+	echo -e "${yellow}Se ha reiniciado la secuencia a la original para jugar con el dinero de la casa, el nuevo tope ahore es $bet_renew${end}"
+    
+	# si yo tengo 200 --> bet to renew 150
+	# si me quitan el bet to renew y -100 tendria 50, por lo tanto, bet to renew tendria que valer 50 mas para llegar a 100
+
+
+	elif [ $dinero -lt $(($bet_renew-100)) ]; then
+		bet_renew=$(($dinero+50))
+		logica=(${backup_logica[@]})
+		logica=(${logica[@]})
+	echo -e "${yellow}Cifra crítica alcanzada, se ha reiniciado la secuencia a ${logica[@]} y se ha reiniciado el tope a $bet_renew ${end}"
+	
+	fi
 
     echo -e "Tu dinero actual es ${dinero}€ y la secuencia es [${logica[@]}]."
 
